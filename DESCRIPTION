@@ -1,0 +1,20 @@
+Package: taxsearch
+Title: Search function for taxonomic lists
+Version: 0.0.0.9001
+Date: 2017-01-07
+Authors@R: person("Miguel", "Alvarez", email="kamapu78@gmail.com",
+    role=c("aut","cre"))
+Author: Miguel Alvarez [aut, cre]
+Maintainer: Miguel Alvarez <kamapu78@gmail.com>
+Depends: R(>= 3.4.0)
+Imports:
+	rvest,
+    tcltk,
+    xml2
+Suggests:
+    devtools
+Description: Retrieving taxonomic information from some on-line databases.
+License: GPL (>= 2)
+Encoding: UTF-8
+LazyData: true
+URL: https://kamapu.github.io/
