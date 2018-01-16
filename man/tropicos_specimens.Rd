@@ -7,11 +7,12 @@ Documentation under construction
 }
 \usage{
 tropicos_specimens(Home="http://www.tropicos.org/SpecimenSearch.aspx",
-		collector, number, barcode, accession, specimen, mode="collector",
+		key, collector, number, barcode, accession, specimen, mode="collector",
 		encoding="UTF-8")
 }
 \arguments{
 \item{Home}{Site for search (default).}
+\item{key}{API key.}
 \item{collector}{Name of senior collector.}
 \item{number}{Collection number by respective senior collector.}
 \item{barcode}{Barcode ID.}
@@ -30,8 +31,7 @@ Documentation under construction
 Miguel Alvarez, \email{kamapu78@gmail.com}.
 }
 \examples{
-library(conosur)
-
+library(taxsearch)
 ## Documentation under construction
 }
 

@@ -7,6 +7,5 @@ import(
 
 ## Export of regular function names
 export(
-    tpl_families,
     tropicos_specimens
 )
