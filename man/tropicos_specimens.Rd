@@ -1,7 +1,7 @@
 \name{tropicos_specimens}
 \alias{tropicos_specimens}
 
-\title{Query for specimens in \dQuote{Tropicos}.}
+\title{Query for Specimens in \dQuote{Tropicos}.}
 \description{
 Documentation under construction
 }

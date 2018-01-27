@@ -1,5 +1,6 @@
 ## Import of packages
 import(
+	readxl,
 	rvest,
 	tcltk,
 	xml2
@@ -7,5 +8,6 @@ import(
 
 ## Export of regular function names
 export(
+	import_gentry,
     tropicos_specimens
 )

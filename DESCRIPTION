@@ -1,13 +1,14 @@
 Package: taxsearch
-Title: Search function for taxonomic lists
+Title: Search Function for Taxonomic Lists
 Version: 0.0.0.9001
-Date: 2017-01-07
+Date: 2018-01-27
 Authors@R: person("Miguel", "Alvarez", email="kamapu78@gmail.com",
     role=c("aut","cre"))
 Author: Miguel Alvarez [aut, cre]
 Maintainer: Miguel Alvarez <kamapu78@gmail.com>
 Depends: R(>= 3.4.0)
 Imports:
+    readxl,
 	rvest,
     tcltk,
     xml2
