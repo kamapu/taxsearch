@@ -55,7 +55,7 @@ tropicos_specimens <- function(Home="http://www.tropicos.org/SpecimenSearch.aspx
 				Name <- html_nodes(Page,
 						"tr:nth-child(11) td , tr:nth-child(10) td, tr:nth-child(9) td, tr:nth-child(8) td, tr:nth-child(7) td, tr:nth-child(5) td, tr:nth-child(4) td, #details tr:nth-child(1) td, #ctl00_MainContentPlaceHolder_specimenDetailsTabControl_FullNameLink")
 				Name <- html_text(Name, trim=TRUE)
-			} else Name <- NA
+			}  else Name <- NA
 		}
 		## Name <- data.frame(
 		##         taxon_name=Name[1],
@@ -68,7 +68,7 @@ tropicos_specimens <- function(Home="http://www.tropicos.org/SpecimenSearch.aspx
 		##         elevation=Name[which(Name == "Elevation") + 1],
 		##         stringsAsFactors=FALSE)
 		## 
-		if(is.na(Name)) {
+		if(length(Name) == 1 & is.na(Name[1])) {
 			Name <- data.frame(
 					taxon_name=NA,
 					collectors=NA,
@@ -77,7 +77,7 @@ tropicos_specimens <- function(Home="http://www.tropicos.org/SpecimenSearch.aspx
 					location=NA,
 					coordinates=NA,
 					elevation=NA)
-		} else{
+		} else {
 			Name <- list(
 					taxon_name=Name[1],
 					collectors=Name[which(Name == "Collectors") + 1],
