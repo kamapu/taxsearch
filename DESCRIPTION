@@ -1,7 +1,7 @@
 Package: taxsearch
 Title: Search Function for Taxonomic Lists
-Version: 0.0.0.9001
-Date: 2018-01-27
+Version: 0.0.0.9002
+Date: 2018-01-30
 Authors@R: person("Miguel", "Alvarez", email="kamapu78@gmail.com",
     role=c("aut","cre"))
 Author: Miguel Alvarez [aut, cre]

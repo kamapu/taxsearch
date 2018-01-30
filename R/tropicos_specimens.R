@@ -55,7 +55,18 @@ tropicos_specimens <- function(Home="http://www.tropicos.org/SpecimenSearch.aspx
 					"tr:nth-child(11) td , tr:nth-child(10) td, tr:nth-child(9) td, tr:nth-child(8) td, tr:nth-child(7) td, tr:nth-child(5) td, tr:nth-child(4) td, #details tr:nth-child(1) td, #ctl00_MainContentPlaceHolder_specimenDetailsTabControl_FullNameLink")
 			Name <- html_text(Name, trim=TRUE)
 		}
-		Name <- data.frame(
+		## Name <- data.frame(
+		##         taxon_name=Name[1],
+		##         collectors=Name[which(Name == "Collectors") + 1],
+		##         specimenid=ID,
+		##         date=Name[which(Name == "Collection Date") + 1],
+		##         location=paste(Name[which(Name == "Location") + 1],
+		##                 Name[which(Name == "Locality") + 1]),
+		##         coordinates=Name[which(Name == "Coordinate") + 1],
+		##         elevation=Name[which(Name == "Elevation") + 1],
+		##         stringsAsFactors=FALSE)
+		## 
+		Name <- list(
 				taxon_name=Name[1],
 				collectors=Name[which(Name == "Collectors") + 1],
 				specimenid=ID,
@@ -63,10 +74,9 @@ tropicos_specimens <- function(Home="http://www.tropicos.org/SpecimenSearch.aspx
 				location=paste(Name[which(Name == "Location") + 1],
 						Name[which(Name == "Locality") + 1]),
 				coordinates=Name[which(Name == "Coordinate") + 1],
-				elevation=Name[which(Name == "Elevation") + 1],
-				stringsAsFactors=FALSE)
-		
-		
+				elevation=Name[which(Name == "Elevation") + 1])
+		Name[sapply(Name, length) == 0] <- NA
+		Name <- as.data.frame(Name, stringsAsFactors=FALSE)
 		OUT[[i]] <- Name
 	}
 	close(pb)
