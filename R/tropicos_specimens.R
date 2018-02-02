@@ -3,98 +3,146 @@
 # Author: Miguel Alvarez
 ################################################################################
 
-# browseURL("http://www.tropicos.org/LinkHelp.aspx")
+# Modular programming
 
-tropicos_specimens <- function(Home="http://www.tropicos.org/SpecimenSearch.aspx",
-		key, collector, number, barcode, accession, specimen, mode="collector",
-		encoding="UTF-8") {
+# 1: Function reading collector and number
+read_collector <- function(collector, number, key, encoding) {
+	Page <- read_html(paste0(
+					"http://services.tropicos.org/Specimen/Search?seniorcollector=",
+					collector, "&collectionnumber=", number, "&apikey=", key,
+					"&format=xml"), encoding=encoding)
+	return(Page)
+}
+
+# 2: Function reading specimen number
+read_specimen <- function(specimen, key, encoding) {
+	Page <- read_html(paste0("http://services.tropicos.org/Specimen/", specimen,
+					"?apikey=", key, "&format=xml"), encoding=encoding)
+	return(Page)
+}
+
+# 3: Conversion to data.frame
+xml2df <- function(x) {
+	if(!missing(x)) {
+		Table <- list(
+				specimen_id=xml_text(xml_find_all(x,
+								"//specimenid"), trim=TRUE),
+				species=xml_text(xml_find_all(x,
+								"//determinationfullnamenoauthors"), trim=TRUE),
+				fullname=xml_text(xml_find_all(x,
+								"//determinationfullname"), trim=TRUE),
+				det=xml_text(xml_find_all(x,
+								"//determinedby"), trim=TRUE),
+				collector=xml_text(xml_find_all(x,
+								"//collectorstring"), trim=TRUE),
+				collection_nr=xml_text(xml_find_all(x,
+								"//collectionnumber"), trim=TRUE),
+				day=xml_text(xml_find_all(x,
+								"//collectionday"), trim=TRUE),
+				month=xml_text(xml_find_all(x,
+								"//collectionmonth"), trim=TRUE),
+				year=xml_text(xml_find_all(x,
+								"//collectionyear"), trim=TRUE),
+				country=xml_text(xml_find_all(x,
+								"//countryname"), trim=TRUE),
+				locality=xml_text(xml_find_all(x,
+								"//locality"), trim=TRUE),
+				habitat=xml_text(xml_find_all(x,
+								"//habitat"), trim=TRUE),
+				vegetation=xml_text(xml_find_all(x,
+								"//vegetation"), trim=TRUE),
+				longitude=xml_text(xml_find_all(x,
+								"//longitudedecdeg"), trim=TRUE),
+				latitude=xml_text(xml_find_all(x,
+								"//latitudedecdeg"), trim=TRUE),
+				elevation=xml_text(xml_find_all(x,
+								"//elevationdisplay"), trim=TRUE))
+		Table[sapply(Table, length) == 0] <- NA
+	} else {
+		Table <- list(
+				specimen_id=NA,
+				species=NA,
+				fullname=NA,
+				det=NA,
+				collector=NA,
+				collection_nr=NA,
+				day=NA,
+				month=NA,
+				year=NA,
+				country=NA,
+				locality=NA,
+				habitat=NA,
+				vegetation=NA,
+				longitude=NA,
+				latitude=NA,
+				elevation=NA)
+	}
+	return(as.data.frame(Table, stringsAsFactors=FALSE))
+}
+
+# 4: Global function
+tropicos_specimens <- function(key, collector, number, specimen,
+		mode="collector", encoding="UTF-8") {
 	if(missing(key))
 		stop("You require an API key for this search (request it at http://services.tropicos.org/help?requestkey)")
-	# Mode selection -----------------------------------------------------------
-	mode <- match.arg(tolower(mode), c("collector","barcode","accession",
-					"specimen"))
-	if(mode == "collector") {
-		if(length(collector) == 1 & length(number) > 1)
-			collector <- rep(collector, length(number))
-		Home2 <- paste0(Home, "?sen=", collector, "&num=", number)
-	}
-	if(mode == "barcode")
-		Home2 <- paste0(Home, "?barcode=", barcode)
-	if(mode == "accession")
-		Home2 <- paste0(Home, "?accession=", accession)
-	if(mode == "specimen")
-		Home2 <- paste0(sub("Search.aspx", "", Home), "/", specimen)
-	# End: Mode selection ------------------------------------------------------
+	mode <- match.arg(tolower(mode), c("collector", "specimen"))
 	OUT <- list()
-	pb <- tkProgressBar(min=0, max=length(Home2), width=300)
-	for(i in 1:length(Home2)) {
-		Sys.sleep(0.1)
-		setTkProgressBar(pb, i, title=paste0("Entry ", i, " of ", length(Home2),
-						" (", round(i/length(Home2)*100), "% done)"))
-		Page <- read_html(paste0(Home2[i], "&apikey=", key, "&format=xml"),
-				encoding=encoding)
-		Name <- html_nodes(Page,
-				"tr:nth-child(11) td , tr:nth-child(10) td, tr:nth-child(9) td, tr:nth-child(8) td, tr:nth-child(7) td, tr:nth-child(5) td, tr:nth-child(4) td, #details tr:nth-child(1) td, #ctl00_MainContentPlaceHolder_specimenDetailsTabControl_FullNameLink")
-		Name <- html_text(Name, trim=TRUE)
-		ID <- NA
-		if(length(Name) > 0 & !"Collectors" %in% Name) {
-			Table <- html_nodes(Page,
-					"#ctl00_MainContentPlaceHolder_specimenSearchControl_gridView")
-			Table <- html_table(Table, fill=TRUE)[[1]]
-			ID <- which(Table$"Coll No" == number[i])[1] + 1
-			if(!is.na(ID)) {
-				if(ID < 10) ID <- paste0("0", ID) else ID <- paste(ID)
-				ID <- paste0("#ctl00_MainContentPlaceHolder_specimenSearchControl_gridView_ctl",
-						ID, "_SpecimenLink")
-				ID <- html_attr(html_node(Page, ID), "href")
-				ID <- sub("/Specimen/", "", ID)
-				Home2[i] <- paste0(sub("/SpecimenSearch.aspx",
-								"/SpecimenPage.aspx?specimenid=", Home), ID)
-				Page <- read_html(paste0(Home2[i], "&apikey=", key, "&format=xml"),
-						encoding=encoding)
-				Name <- html_nodes(Page,
-						"tr:nth-child(11) td , tr:nth-child(10) td, tr:nth-child(9) td, tr:nth-child(8) td, tr:nth-child(7) td, tr:nth-child(5) td, tr:nth-child(4) td, #details tr:nth-child(1) td, #ctl00_MainContentPlaceHolder_specimenDetailsTabControl_FullNameLink")
-				Name <- html_text(Name, trim=TRUE)
-			}  else Name <- NA
+	if(mode == "collector") {
+		if(length(collector) == 1) collector <- rep(collector, length(number))
+		pb <- tkProgressBar(min=0, max=length(number), width=300)
+		for(i in 1:length(number)) {
+			Sys.sleep(0.1)
+			setTkProgressBar(pb, i, title=paste0("Entry ", i, " of ",
+							length(number), " (", round(i/length(number)*100),
+							"% done)"))
+			Table <- read_collector(collector[i], number[i], key, encoding)
+			if(length(xml_find_all(Table, "//specimen")) > 1) {
+				Nr <- xml_text(xml_find_all(Table, "//collectionnumber"))
+				ID <- xml_text(xml_find_all(Table, "//specimenid"))
+				ID <- ID[Nr == paste(number[i])]
+				if(length(ID) >= 1) {
+					Table <- read_specimen(ID[1], key, encoding)
+					if(length(xml_find_all(Table, "//error")) > 0) {
+						Table <- xml2df()
+					} else {
+						Table <- xml2df(Table)
+					}
+				} else {
+					Table <- xml2df()
+				}
+			} else {
+				if(length(xml_find_all(Table, "//error")) > 0) {
+					Table <- xml2df()
+				} else {
+					Table <- read_specimen(xml_text(xml_find_all(Table,
+											"//specimenid")), key, encoding)
+					if(length(xml_find_all(Table, "//error")) > 0) {
+						Table <- xml2df()
+					} else {
+						Table <- xml2df(Table)
+					}
+				}
+			}
+			OUT[[i]] <- Table
 		}
-		## Name <- data.frame(
-		##         taxon_name=Name[1],
-		##         collectors=Name[which(Name == "Collectors") + 1],
-		##         specimenid=ID,
-		##         date=Name[which(Name == "Collection Date") + 1],
-		##         location=paste(Name[which(Name == "Location") + 1],
-		##                 Name[which(Name == "Locality") + 1]),
-		##         coordinates=Name[which(Name == "Coordinate") + 1],
-		##         elevation=Name[which(Name == "Elevation") + 1],
-		##         stringsAsFactors=FALSE)
-		## 
-		if(length(Name) == 1 & is.na(Name[1])) {
-			Name <- data.frame(
-					taxon_name=NA,
-					collectors=NA,
-					specimenid=NA,
-					date=NA,
-					location=NA,
-					coordinates=NA,
-					elevation=NA)
-		} else {
-			Name <- list(
-					taxon_name=Name[1],
-					collectors=Name[which(Name == "Collectors") + 1],
-					specimenid=ID,
-					date=Name[which(Name == "Collection Date") + 1],
-					location=paste(Name[which(Name == "Location") + 1],
-							Name[which(Name == "Locality") + 1]),
-					coordinates=Name[which(Name == "Coordinate") + 1],
-					elevation=Name[which(Name == "Elevation") + 1])
-			Name[sapply(Name, length) == 0] <- NA
-			Name <- as.data.frame(Name, stringsAsFactors=FALSE)
-		}
-		OUT[[i]] <- Name
+		close(pb)
 	}
-	close(pb)
-	names(OUT) <- NULL
-	OUT <- as.data.frame(do.call(rbind, OUT), stringsAsFactors=FALSE)
-	OUT$uri <- Home2
-	return(OUT)
+	if(mode == "specimen") {
+		pb <- tkProgressBar(min=0, max=length(specimen), width=300)
+		for(i in 1:length(specimen)) {
+			Sys.sleep(0.1)
+			setTkProgressBar(pb, i, title=paste0("Entry ", i, " of ",
+							length(specimen), " (",
+							round(i/length(specimen)*100), "% done)"))
+			Table <- read_specimen(specimen[i], key, encoding)
+			if(length(xml_find_all(Table, "//error")) > 0) {
+				Table <- xml2df()
+			} else {
+				Table <- xml2df(Table)
+			}
+			OUT[[i]] <- Table
+		}
+		close(pb)
+	}
+	return(do.call(rbind, OUT))
 }
